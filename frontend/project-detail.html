@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Detail | Crowdfunding Platform</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111120;
+      --cyan: #00f5ff;
+      --text: #e8e8f0;
+      --muted: #7a788a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .card-custom {
+      background: var(--surface);
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 15px;
+    }
+
+    .btn-cyber {
+      background: var(--cyan);
+      color: black;
+      font-weight: bold;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .progress-bar {
+      background: var(--cyan);
+    }
+
+    .section {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container py-4">
+
+  <div id="projectContainer"></div>
+
+  <!-- CONTRIBUTION BOX -->
+  <div class="card-custom mt-4">
+    <h5>Contribute</h5>
+
+    <input id="amount" class="form-control mb-2" placeholder="Enter amount (PKR)">
+
+    <select id="paymentMethod" class="form-control mb-2">
+      <option value="simulated_card">Card</option>
+      <option value="easypaisa">EasyPaisa</option>
+      <option value="jazzcash">JazzCash</option>
+    </select>
+
+    <textarea id="message" class="form-control mb-2" placeholder="Message (optional)"></textarea>
+
+    <button class="btn btn-cyber w-100" onclick="contribute()">Donate</button>
+
+    <p class="mt-2 muted">SIMULATED PAYMENT — No real charge</p>
+  </div>
+
+  <!-- UPDATES -->
+  <div class="section">
+    <h5>Updates</h5>
+    <div id="updates"></div>
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script>
+const API = "http://localhost:5000/api";
+
+// Get project ID from URL
+const urlParams = new URLSearchParams(window.location.search);
+const projectId = urlParams.get("id");
+
+// Load project
+async function loadProject() {
+  const res = await fetch(`${API}/projects/${projectId}`);
+  const p = await res.json();
+
+  const percent = Math.min((p.currentFunding / p.fundingGoal) * 100, 100);
+
+  $("#projectContainer").html(`
+    <div class="card-custom">
+      <h3>${p.title}</h3>
+      <p class="muted">${p.category}</p>
+
+      <p>${p.description}</p>
+
+      <div class="progress mb-2">
+        <div class="progress-bar" style="width:${percent}%"></div>
+      </div>
+
+      <p>${p.currentFunding} / ${p.fundingGoal} PKR</p>
+
+      <p><b>Status:</b> ${p.status}</p>
+    </div>
+  `);
+}
+
+// Contribute
+async function contribute() {
+  const amount = $("#amount").val();
+  const paymentMethod = $("#paymentMethod").val();
+  const message = $("#message").val();
+
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await fetch(`${API}/contributions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        projectId,
+        amount,
+        paymentMethod,
+        message,
+        anonymous: false
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Contribution successful!");
+      loadProject();
+    } else {
+      alert(data.message);
+    }
+
+  } catch (err) {
+    alert("Payment failed");
+  }
+}
+
+// Load updates
+async function loadUpdates() {
+  const res = await fetch(`${API}/updates/project/${projectId}`);
+  const updates = await res.json();
+
+  let html = "";
+
+  updates.forEach(u => {
+    html += `
+      <div class="card-custom mt-2">
+        <h6>${u.title}</h6>
+        <p>${u.content}</p>
+      </div>
+    `;
+  });
+
+  $("#updates").html(html);
+}
+
+loadProject();
+loadUpdates();
+</script>
+
+</body>
+</html>

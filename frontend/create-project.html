@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Project | Crowdfunding Platform</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111120;
+      --cyan: #00f5ff;
+      --text: #e8e8f0;
+      --muted: #7a788a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .card-custom {
+      background: var(--surface);
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 15px;
+    }
+
+    .btn-cyber {
+      background: var(--cyan);
+      color: black;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container py-4">
+
+  <h3>Create Project</h3>
+
+  <!-- STEP 1 -->
+  <div id="step1" class="card-custom">
+    <h5>Step 1: Basic Info</h5>
+
+    <input id="title" class="form-control mb-2" placeholder="Project Title">
+    <input id="description" class="form-control mb-2" placeholder="Short Description">
+
+    <select id="category" class="form-control mb-2">
+      <option>Technology</option>
+      <option>Art</option>
+      <option>Music</option>
+      <option>Film</option>
+      <option>Food</option>
+      <option>Community</option>
+      <option>Education</option>
+      <option>Health</option>
+    </select>
+
+    <input id="fundingGoal" class="form-control mb-2" placeholder="Funding Goal (PKR)">
+    <input id="deadline" type="date" class="form-control mb-2">
+
+    <button class="btn btn-cyber w-100" onclick="nextStep(2)">Next</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" class="card-custom hidden">
+    <h5>Step 2: Story</h5>
+
+    <textarea id="story" class="form-control mb-2" rows="6"
+      placeholder="Tell your story..."></textarea>
+
+    <button class="btn btn-secondary w-100 mb-2" onclick="nextStep(1)">Back</button>
+    <button class="btn btn-cyber w-100" onclick="nextStep(3)">Next</button>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" class="card-custom hidden">
+    <h5>Step 3: Rewards</h5>
+
+    <input id="rewardTitle" class="form-control mb-2" placeholder="Reward Title">
+    <input id="rewardDesc" class="form-control mb-2" placeholder="Reward Description">
+    <input id="rewardAmount" class="form-control mb-2" placeholder="Minimum Amount">
+
+    <button class="btn btn-secondary w-100 mb-2" onclick="addReward()">Add Reward</button>
+
+    <ul id="rewardList"></ul>
+
+    <button class="btn btn-secondary w-100 mb-2" onclick="nextStep(2)">Back</button>
+    <button class="btn btn-cyber w-100" onclick="submitProject()">Submit Project</button>
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script>
+let rewards = [];
+
+// Step navigation
+function nextStep(step) {
+  $("#step1, #step2, #step3").addClass("hidden");
+  $("#step" + step).removeClass("hidden");
+}
+
+// Add reward
+function addReward() {
+  const title = $("#rewardTitle").val();
+  const description = $("#rewardDesc").val();
+  const minimumAmount = $("#rewardAmount").val();
+
+  rewards.push({ title, description, minimumAmount });
+
+  $("#rewardList").append(`
+    <li>${title} - ${minimumAmount} PKR</li>
+  `);
+
+  $("#rewardTitle, #rewardDesc, #rewardAmount").val("");
+}
+
+// Submit project
+async function submitProject() {
+  const token = localStorage.getItem("token");
+
+  const data = {
+    title: $("#title").val(),
+    description: $("#description").val(),
+    category: $("#category").val(),
+    fundingGoal: $("#fundingGoal").val(),
+    deadline: $("#deadline").val(),
+    story: $("#story").val(),
+    rewards
+  };
+
+  try {
+    const res = await fetch("http://localhost:5000/api/projects", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      alert("Project created successfully!");
+      window.location.href = "projects.html";
+    } else {
+      alert(result.message);
+    }
+
+  } catch (err) {
+    alert("Failed to create project");
+  }
+}
+</script>
+
+</body>
+</html>
