@@ -125,6 +125,10 @@
       async function loadProjects(page = 1) {
         currentPage = page;
 
+        $("#projectList").html(
+          '<div class="col-12 text-center muted py-4">Loading projects...</div>'
+        );
+
         const search = $("#search").val();
         const category = $("#category").val();
         const sort = $("#sort").val();
@@ -137,6 +141,15 @@
         try {
           const res = await fetch(url);
           const data = await res.json();
+
+          if (!data.projects.length) {
+            $("#projectList").html(
+              '<div class="col-12 text-center muted py-4">No projects match your search</div>'
+            );
+            totalPages = data.totalPages;
+            $("#pageInfo").text(`Page ${data.currentPage} / ${data.totalPages}`);
+            return;
+          }
 
           let html = "";
 
