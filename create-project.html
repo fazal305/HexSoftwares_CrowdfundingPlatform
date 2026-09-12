@@ -154,6 +154,13 @@ async function submitProject() {
       body: JSON.stringify(data)
     });
 
+    if (res.status === 401) {
+      alert("Your session has expired — please log in again");
+      localStorage.removeItem("token");
+      window.location.href = "auth.html";
+      return;
+    }
+
     const result = await res.json();
 
     if (res.ok) {

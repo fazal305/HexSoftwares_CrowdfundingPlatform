@@ -140,6 +140,13 @@ async function contribute() {
       })
     });
 
+    if (res.status === 401) {
+      alert("Your session has expired — please log in again");
+      localStorage.removeItem("token");
+      window.location.href = "auth.html";
+      return;
+    }
+
     const data = await res.json();
 
     if (res.ok) {

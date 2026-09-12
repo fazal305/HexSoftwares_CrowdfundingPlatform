@@ -107,76 +107,120 @@ if (!token) {
   window.location.href = "auth.html";
 }
 
+// Handle an expired/invalid session on any authenticated request
+function handleSessionExpired(res) {
+  if (res.status === 401) {
+    alert("Your session has expired — please log in again");
+    localStorage.removeItem("token");
+    window.location.href = "auth.html";
+    return true;
+  }
+  return false;
+}
+
 // Load user profile
 async function loadUser() {
-  const res = await fetch(`${API}/auth/me`, {
-    headers: {
-      "Authorization": `Bearer ${token}`
-    }
-  });
+  try {
+    const res = await fetch(`${API}/auth/me`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
 
-  const user = await res.json();
+    if (handleSessionExpired(res)) return;
 
-  $("#userName").text(user.name);
-  $("#userEmail").text(user.email);
+    const user = await res.json();
+
+    $("#userName").text(user.name);
+    $("#userEmail").text(user.email);
+  } catch (err) {
+    $("#userName").text("Unable to load profile");
+  }
 }
 
 // Load my projects
 async function loadMyProjects() {
-  const res = await fetch(`${API}/projects/my-projects`, {
-    headers: {
-      "Authorization": `Bearer ${token}`
+  $("#myProjects").html('<p class="muted">Loading...</p>');
+
+  try {
+    const res = await fetch(`${API}/projects/my-projects`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (handleSessionExpired(res)) return;
+
+    const projects = await res.json();
+
+    $("#myProjectsCount").text(projects.length);
+
+    if (!projects.length) {
+      $("#myProjects").html('<p class="muted">You haven\'t created any projects yet.</p>');
+      return;
     }
-  });
 
-  const projects = await res.json();
+    let html = "";
 
-  $("#myProjectsCount").text(projects.length);
+    projects.forEach(p => {
+      html += `
+        <div class="card-custom mb-2">
+          <h6>${p.title}</h6>
+          <p class="muted">${p.category}</p>
+          <p>${p.currentFunding} / ${p.fundingGoal} PKR</p>
+        </div>
+      `;
+    });
 
-  let html = "";
-
-  projects.forEach(p => {
-    html += `
-      <div class="card-custom mb-2">
-        <h6>${p.title}</h6>
-        <p class="muted">${p.category}</p>
-        <p>${p.currentFunding} / ${p.fundingGoal} PKR</p>
-      </div>
-    `;
-  });
-
-  $("#myProjects").html(html);
+    $("#myProjects").html(html);
+  } catch (err) {
+    $("#myProjects").html('<p class="muted">Unable to load projects right now.</p>');
+  }
 }
 
 // Load contributions
 async function loadMyContributions() {
-  const res = await fetch(`${API}/contributions/my-contributions`, {
-    headers: {
-      "Authorization": `Bearer ${token}`
+  $("#myContributions").html('<p class="muted">Loading...</p>');
+
+  try {
+    const res = await fetch(`${API}/contributions/my-contributions`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (handleSessionExpired(res)) return;
+
+    const contributions = await res.json();
+
+    $("#myContributionsCount").text(contributions.length);
+
+    if (!contributions.length) {
+      $("#myContributions").html('<p class="muted">You haven\'t backed any projects yet.</p>');
+      $("#totalSpent").text("0 PKR");
+      return;
     }
-  });
 
-  const contributions = await res.json();
+    let total = 0;
+    let html = "";
 
-  $("#myContributionsCount").text(contributions.length);
+    contributions.forEach(c => {
+      total += c.amount;
 
-  let total = 0;
-  let html = "";
+      html += `
+        <div class="card-custom mb-2">
+          <h6>${c.projectId.title}</h6>
+          <p>${c.amount} PKR - ${c.paymentStatus}</p>
+        </div>
+      `;
+    });
 
-  contributions.forEach(c => {
-    total += c.amount;
+    $("#totalSpent").text(total + " PKR");
 
-    html += `
-      <div class="card-custom mb-2">
-        <h6>${c.projectId.title}</h6>
-        <p>${c.amount} PKR - ${c.paymentStatus}</p>
-      </div>
-    `;
-  });
-
-  $("#totalSpent").text(total + " PKR");
-
-  $("#myContributions").html(html);
+    $("#myContributions").html(html);
+  } catch (err) {
+    $("#myContributions").html('<p class="muted">Unable to load contributions right now.</p>');
+  }
 }
 
 // Load all
