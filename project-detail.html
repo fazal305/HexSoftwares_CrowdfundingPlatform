@@ -93,27 +93,52 @@ const projectId = urlParams.get("id");
 
 // Load project
 async function loadProject() {
-  const res = await fetch(`${API}/projects/${projectId}`);
-  const p = await res.json();
+  $("#projectContainer").html(
+    '<div class="card-custom text-center muted">Loading project...</div>'
+  );
 
-  const percent = Math.min((p.currentFunding / p.fundingGoal) * 100, 100);
+  if (!projectId) {
+    $("#projectContainer").html(
+      '<div class="card-custom text-center muted">No project selected.</div>'
+    );
+    return;
+  }
 
-  $("#projectContainer").html(`
-    <div class="card-custom">
-      <h3>${p.title}</h3>
-      <p class="muted">${p.category}</p>
+  try {
+    const res = await fetch(`${API}/projects/${projectId}`);
 
-      <p>${p.description}</p>
+    if (!res.ok) {
+      $("#projectContainer").html(
+        '<div class="card-custom text-center muted">This project could not be found.</div>'
+      );
+      return;
+    }
 
-      <div class="progress mb-2">
-        <div class="progress-bar" style="width:${percent}%"></div>
+    const p = await res.json();
+
+    const percent = Math.min((p.currentFunding / p.fundingGoal) * 100, 100);
+
+    $("#projectContainer").html(`
+      <div class="card-custom">
+        <h3>${p.title}</h3>
+        <p class="muted">${p.category}</p>
+
+        <p>${p.description}</p>
+
+        <div class="progress mb-2">
+          <div class="progress-bar" style="width:${percent}%"></div>
+        </div>
+
+        <p>${p.currentFunding} / ${p.fundingGoal} PKR</p>
+
+        <p><b>Status:</b> ${p.status}</p>
       </div>
-
-      <p>${p.currentFunding} / ${p.fundingGoal} PKR</p>
-
-      <p><b>Status:</b> ${p.status}</p>
-    </div>
-  `);
+    `);
+  } catch (err) {
+    $("#projectContainer").html(
+      '<div class="card-custom text-center muted">Unable to load this project right now. Please try again.</div>'
+    );
+  }
 }
 
 // Contribute

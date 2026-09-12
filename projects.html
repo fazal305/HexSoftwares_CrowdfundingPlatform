@@ -177,6 +177,9 @@
           $("#pageInfo").text(`Page ${data.currentPage} / ${data.totalPages}`);
         } catch (err) {
           console.log("Error loading projects");
+          $("#projectList").html(
+            '<div class="col-12 text-center muted py-4">Unable to load projects right now. Please try again.</div>'
+          );
         }
       }
 
