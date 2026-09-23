@@ -132,8 +132,6 @@ function addReward() {
 
 // Submit project
 async function submitProject() {
-  const token = localStorage.getItem("token");
-
   const data = {
     title: $("#title").val(),
     description: $("#description").val(),
@@ -147,16 +145,15 @@ async function submitProject() {
   try {
     const res = await fetch("https://hexsoftwares-crowdfundingplatform.onrender.com", {
       method: "POST",
+      credentials: "include",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(data)
     });
 
     if (res.status === 401) {
       alert("Your session has expired — please log in again");
-      localStorage.removeItem("token");
       window.location.href = "auth.html";
       return;
     }

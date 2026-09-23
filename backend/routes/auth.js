@@ -6,6 +6,16 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
+// Cookie options for the httpOnly JWT cookie. In production the frontend
+// (GitHub Pages) and backend (Render) are on different origins, so the
+// cookie must be SameSite=None + Secure to be sent on cross-site requests.
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days, matches default JWT_EXPIRES_IN
+};
+
 /**
  * Register User
  */
@@ -32,8 +42,9 @@ router.post('/register', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
+    res.cookie('token', token, cookieOptions);
+
     res.status(201).json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -69,8 +80,9 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
 
+    res.cookie('token', token, cookieOptions);
+
     res.json({
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -94,6 +106,14 @@ router.get('/me', authMiddleware, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
+/**
+ * Logout User — clears the httpOnly JWT cookie
+ */
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', cookieOptions);
+  res.json({ message: 'Logged out successfully' });
 });
 
 module.exports = router;

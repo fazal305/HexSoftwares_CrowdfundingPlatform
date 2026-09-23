@@ -100,18 +100,10 @@
 <script>
 const API = "https://hexsoftwares-crowdfundingplatform.onrender.com";
 
-const token = localStorage.getItem("token");
-
-// Redirect if not logged in
-if (!token) {
-  window.location.href = "auth.html";
-}
-
-// Handle an expired/invalid session on any authenticated request
+// Handle an expired/invalid (or missing) session on any authenticated request
 function handleSessionExpired(res) {
   if (res.status === 401) {
     alert("Your session has expired — please log in again");
-    localStorage.removeItem("token");
     window.location.href = "auth.html";
     return true;
   }
@@ -122,9 +114,7 @@ function handleSessionExpired(res) {
 async function loadUser() {
   try {
     const res = await fetch(`${API}/auth/me`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
+      credentials: "include"
     });
 
     if (handleSessionExpired(res)) return;
@@ -144,9 +134,7 @@ async function loadMyProjects() {
 
   try {
     const res = await fetch(`${API}/projects/my-projects`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
+      credentials: "include"
     });
 
     if (handleSessionExpired(res)) return;
@@ -184,9 +172,7 @@ async function loadMyContributions() {
 
   try {
     const res = await fetch(`${API}/contributions/my-contributions`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
+      credentials: "include"
     });
 
     if (handleSessionExpired(res)) return;

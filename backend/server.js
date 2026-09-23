@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
@@ -9,8 +10,12 @@ const updateRoutes = require('./routes/updates');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'https://fazal305.github.io',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/contributions", contributionRoutes);

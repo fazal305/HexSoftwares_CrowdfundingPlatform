@@ -147,14 +147,12 @@ async function contribute() {
   const paymentMethod = $("#paymentMethod").val();
   const message = $("#message").val();
 
-  const token = localStorage.getItem("token");
-
   try {
     const res = await fetch(`${API}/contributions`, {
       method: "POST",
+      credentials: "include",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         projectId,
@@ -167,7 +165,6 @@ async function contribute() {
 
     if (res.status === 401) {
       alert("Your session has expired — please log in again");
-      localStorage.removeItem("token");
       window.location.href = "auth.html";
       return;
     }

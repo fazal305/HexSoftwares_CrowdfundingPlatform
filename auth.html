@@ -117,6 +117,7 @@ $("#registerBtn").click(async function () {
   try {
     const res = await fetch(`${API_URL}/register`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json"
       },
@@ -126,7 +127,6 @@ $("#registerBtn").click(async function () {
     const data = await res.json();
 
     if (res.ok) {
-      localStorage.setItem("token", data.token);
       window.location.href = "index.html";
     } else {
       alert(data.message);
@@ -145,6 +145,7 @@ $("#loginBtn").click(async function () {
   try {
     const res = await fetch(`${API_URL}/login`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json"
       },
@@ -154,7 +155,6 @@ $("#loginBtn").click(async function () {
     const data = await res.json();
 
     if (res.ok) {
-      localStorage.setItem("token", data.token);
       window.location.href = "index.html";
     } else {
       alert(data.message);
